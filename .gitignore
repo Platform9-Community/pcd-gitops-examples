@@ -1,0 +1,17 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+
+# Local-only Terraform vars (use terraform.tfvars.example as a template)
+terraform.tfvars
+*.auto.tfvars
+
+# OS
+.DS_Store
+Thumbs.db

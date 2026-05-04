@@ -1,0 +1,79 @@
+# .github/workflows/terraform.yaml
+
+name: Terraform
+
+on:
+  pull_request:
+    paths:
+      - 'environments/**'
+      - 'modules/**'
+      - '.github/workflows/terraform.yaml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'environments/**'
+      - 'modules/**'
+      - '.github/workflows/terraform.yaml'
+
+jobs:
+  plan:
+    name: Plan
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        environment: [dev]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
+        with:
+          terraform_version: 1.15
+
+      - name: Write clouds.yaml
+        run: |
+          mkdir -p ~/.config/openstack
+          echo "${{ secrets.CLOUDS_YAML }}" > ~/.config/openstack/clouds.yaml
+        shell: bash
+
+      - name: Terraform Init
+        working-directory: environments/${{ matrix.environment }}
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: environments/${{ matrix.environment }}
+        env:
+          OS_CLOUD: pcd
+        run: terraform plan -out=tfplan
+
+  apply-dev:
+    name: Apply (dev)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
+        with:
+          terraform_version: 1.15
+
+      - name: Write clouds.yaml
+        run: |
+          mkdir -p ~/.config/openstack
+          echo "${{ secrets.CLOUDS_YAML }}" > ~/.config/openstack/clouds.yaml
+        shell: bash
+
+      - name: Terraform Init
+        working-directory: environments/dev
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: environments/dev
+        env:
+          OS_CLOUD: pcd
+        run: terraform apply -auto-approve

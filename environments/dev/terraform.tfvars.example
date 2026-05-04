@@ -1,0 +1,5 @@
+# Copy this file to terraform.tfvars and fill in real values from your PCD environment.
+# terraform.tfvars is gitignored.
+
+analytics_team_tenant_id = "REPLACE_WITH_YOUR_TENANT_ID"
+external_network_id      = "REPLACE_WITH_YOUR_EXTERNAL_NETWORK_ID"
